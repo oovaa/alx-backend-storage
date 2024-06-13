@@ -1,4 +1,4 @@
--- task 0
+-- task 1
 /*
  * Creates a table named 'users' if it does not already exist.
  * The table has three columns:
