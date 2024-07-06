@@ -10,17 +10,11 @@ redis_client = redis.Redis(host='localhost', port=6379)
 
 def count_calls(method):
     @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        # Get the qualified name of the method
-        method_name = method.__qualname__
+    def inner(self, *args, **kwargs):
+        redis_client.incr(method.__qualname__)
 
-        # Increment the count for this method in Redis
-        redis_client.incr(method_name)
-
-        # Call the original method
         return method(self, *args, **kwargs)
-
-    return wrapper
+    return inner
 
 
 class Cache:
@@ -28,6 +22,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         id = str(uuid.uuid4())
         self._redis.set(id, data)
