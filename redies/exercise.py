@@ -7,18 +7,18 @@ import redis
 redis_client = redis.Redis(host='localhost', port=6379)
 
 
-def call_history(method: Callable) -> Callable:
-    """Decorator to store the history of inputs and outputs for a particular function."""
-    key = method.__qualname__
-    inputs = key + ":inputs"
-    outputs = key + ":outputs"
+def call_history(func):
 
-    @wraps(method)
-    def inner(self, *args, **kwargs):
-        self._redis.rpush(inputs, str(args))
-        data = method(self, *args, **kwargs)
-        self._redis.rpush(outputs, str(data))
-        return data
+    @wraps(func)
+    def inner(self, *a, **k):
+        fun_name = func.__qualname__
+
+        in_key = fun_name + ":inputs"
+        out_key = fun_name + ":outputs"
+
+        self._redis.rpush(in_key, *a, **k)
+        data = func(self, *a, **k)
+        self._redis.rpush(out_key, data)
 
     return inner
 
